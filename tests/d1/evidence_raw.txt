@@ -1,0 +1,285 @@
+# tests/d1/evidence_raw.txt — 字节级原始证据（独立复核方 verifier-paths 重建）
+# 生成时间：2026-10-19 12:33:31  （本机时区）
+# 可执行文件：D:\LearnFromBugs\LearnFromBugs\Grade3\DataStructureEXP\ex1\codes\build\editor.exe
+# 方法：直接以原始字节读取子进程 stdout/stderr，按 UTF-8 严格解码；hex = 原始字节（十六进制）。
+# 说明：全部用例的路径参数均为纯 ASCII；历史版本中的中文路径用例（E04/E11）已随路径纯英文化删除。
+
+--- C01
+argv          : <none>
+stdin         : []  (0 bytes)
+exit          : 2
+stdout (utf8) : []  (0 bytes, strict-utf8=True)
+stdout (hex)  : <empty>
+stderr (utf8) : [用法：editor <输入文件> <输出文件>\r\n]  (47 bytes, strict-utf8=True)
+stderr (hex)  : E7 94 A8 E6 B3 95 EF BC 9A 65 64 69 74 6F 72 20 3C E8 BE 93 E5 85 A5 E6 96 87 E4 BB B6 3E 20 3C E8 BE 93 E5 87 BA E6 96 87 E4 BB B6 3E 0D 0A
+
+--- C02
+argv          : [tests/d1/single_nl.txt]
+stdin         : []  (0 bytes)
+exit          : 2
+stdout (utf8) : []  (0 bytes, strict-utf8=True)
+stdout (hex)  : <empty>
+stderr (utf8) : [用法：editor <输入文件> <输出文件>\r\n]  (47 bytes, strict-utf8=True)
+stderr (hex)  : E7 94 A8 E6 B3 95 EF BC 9A 65 64 69 74 6F 72 20 3C E8 BE 93 E5 85 A5 E6 96 87 E4 BB B6 3E 20 3C E8 BE 93 E5 87 BA E6 96 87 E4 BB B6 3E 0D 0A
+
+--- C03
+argv          : [tests/d1/single_nl.txt] [tests/d1/out.tmp] [extra]
+stdin         : []  (0 bytes)
+exit          : 2
+stdout (utf8) : []  (0 bytes, strict-utf8=True)
+stdout (hex)  : <empty>
+stderr (utf8) : [用法：editor <输入文件> <输出文件>\r\n]  (47 bytes, strict-utf8=True)
+stderr (hex)  : E7 94 A8 E6 B3 95 EF BC 9A 65 64 69 74 6F 72 20 3C E8 BE 93 E5 85 A5 E6 96 87 E4 BB B6 3E 20 3C E8 BE 93 E5 87 BA E6 96 87 E4 BB B6 3E 0D 0A
+
+--- C04
+argv          : [tests/d1/__no_such_file__.txt] [tests/d1/out.tmp]
+stdin         : []  (0 bytes)
+exit          : 3
+stdout (utf8) : []  (0 bytes, strict-utf8=True)
+stdout (hex)  : <empty>
+stderr (utf8) : [错误：无法打开输入文件：tests/d1/__no_such_file__.txt\r\n]  (67 bytes, strict-utf8=True)
+stderr (hex)  : E9 94 99 E8 AF AF EF BC 9A E6 97 A0 E6 B3 95 E6 89 93 E5 BC 80 E8 BE 93 E5 85 A5 E6 96 87 E4 BB B6 EF BC 9A 74 65 73 74 73 2F 64 31 2F 5F 5F 6E 6F 5F 73 75 63 68 5F 66 69 6C 65 5F 5F 2E 74 78 74 0D 0A
+
+--- C05
+argv          : [tests/d1] [tests/d1/out.tmp]
+stdin         : []  (0 bytes)
+exit          : 3
+stdout (utf8) : []  (0 bytes, strict-utf8=True)
+stdout (hex)  : <empty>
+stderr (utf8) : [错误：无法打开输入文件：tests/d1\r\n]  (46 bytes, strict-utf8=True)
+stderr (hex)  : E9 94 99 E8 AF AF EF BC 9A E6 97 A0 E6 B3 95 E6 89 93 E5 BC 80 E8 BE 93 E5 85 A5 E6 96 87 E4 BB B6 EF BC 9A 74 65 73 74 73 2F 64 31 0D 0A
+
+--- C07
+argv          : [tests/d1/empty.txt] [tests/d1/out.tmp]
+stdin         : [q\n]  (2 bytes)
+exit          : 0
+stdout (utf8) : [已读入 0 行，0 个字符\r\n当前行：无\r\n> ]  (50 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 30 20 E8 A1 8C EF BC 8C 30 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A E6 97 A0 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C08
+argv          : [tests/d1/empty.txt] [tests/d1/out.tmp]
+stdin         : [p\nq\n]  (4 bytes)
+exit          : 0
+stdout (utf8) : [已读入 0 行，0 个字符\r\n当前行：无\r\n> （空文档：没有结点，没有当前行）\r\n> ]  (102 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 30 20 E8 A1 8C EF BC 8C 30 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A E6 97 A0 0D 0A 3E 20 EF BC 88 E7 A9 BA E6 96 87 E6 A1 A3 EF BC 9A E6 B2 A1 E6 9C 89 E7 BB 93 E7 82 B9 EF BC 8C E6 B2 A1 E6 9C 89 E5 BD 93 E5 89 8D E8 A1 8C EF BC 89 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C09
+argv          : [tests/d1/single_no_nl.txt] [tests/d1/out.tmp]
+stdin         : [q\n]  (2 bytes)
+exit          : 0
+stdout (utf8) : [已读入 1 行，1 个字符\r\n当前行：1\r\n> ]  (48 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 31 20 E8 A1 8C EF BC 8C 31 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C10
+argv          : [tests/d1/single_nl.txt] [tests/d1/out.tmp]
+stdin         : [q\n]  (2 bytes)
+exit          : 0
+stdout (utf8) : [已读入 1 行，1 个字符\r\n当前行：1\r\n> ]  (48 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 31 20 E8 A1 8C EF BC 8C 31 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C11
+argv          : [tests/d1/newline_only.txt] [tests/d1/out.tmp]
+stdin         : [q\n]  (2 bytes)
+exit          : 0
+stdout (utf8) : [已读入 1 行，0 个字符\r\n当前行：1\r\n> ]  (48 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 31 20 E8 A1 8C EF BC 8C 30 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C12
+argv          : [tests/d1/trailing_two_nl.txt] [tests/d1/out.tmp]
+stdin         : [q\n]  (2 bytes)
+exit          : 0
+stdout (utf8) : [已读入 2 行，1 个字符\r\n当前行：1\r\n> ]  (48 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 32 20 E8 A1 8C EF BC 8C 31 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C13
+argv          : [tests/d1/trailing_many_nl.txt] [tests/d1/out.tmp]
+stdin         : [q\n]  (2 bytes)
+exit          : 0
+stdout (utf8) : [已读入 4 行，1 个字符\r\n当前行：1\r\n> ]  (48 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 34 20 E8 A1 8C EF BC 8C 31 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C14
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : [q\n]  (2 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> ]  (48 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C14c
+argv          : [tests/d1/crlf.txt] [tests/d1/out.tmp]
+stdin         : [q\n]  (2 bytes)
+exit          : 0
+stdout (utf8) : [已读入 2 行，4 个字符\r\n当前行：1\r\n> ]  (48 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 32 20 E8 A1 8C EF BC 8C 34 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C15
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : [p\nq\n]  (4 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> *    1 | A\r\n     2 | B\r\n     3 | C\r\n> ]  (86 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20 2A 20 20 20 20 31 20 7C 20 41 0D 0A 20 20 20 20 20 32 20 7C 20 42 0D 0A 20 20 20 20 20 33 20 7C 20 43 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C16
+argv          : [tests/d1/blank_mid.txt] [tests/d1/out.tmp]
+stdin         : [p\nq\n]  (4 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，2 个字符\r\n当前行：1\r\n> *    1 | A\r\n     2 | \r\n     3 | B\r\n> ]  (85 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 32 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20 2A 20 20 20 20 31 20 7C 20 41 0D 0A 20 20 20 20 20 32 20 7C 20 0D 0A 20 20 20 20 20 33 20 7C 20 42 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C17
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : [p\n]  (2 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> *    1 | A\r\n     2 | B\r\n     3 | C\r\n> ]  (86 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20 2A 20 20 20 20 31 20 7C 20 41 0D 0A 20 20 20 20 20 32 20 7C 20 42 0D 0A 20 20 20 20 20 33 20 7C 20 43 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C18
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : [h\nq\n]  (4 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> 用法：editor <输入文件> <输出文件>\r\n\r\n  p        显示全部文本，标出当前行（当前行前标记 *）\r\n  h / H    显示本帮助\r\n  q        退出\r\n\r\n空行或只含空白的输入会被忽略；无法识别的命令会给出提示并继续运行。\r\n其余编辑命令（定位、插入、删除、替换整行、查找、替换子串、统计、重新读入、保存）将在后续阶段加入。\r\n> ]  (473 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20 E7 94 A8 E6 B3 95 EF BC 9A 65 64 69 74 6F 72 20 3C E8 BE 93 E5 85 A5 E6 96 87 E4 BB B6 3E 20 3C E8 BE 93 E5 87 BA E6 96 87 E4 BB B6 3E 0D 0A 0D 0A 20 20 70 20 20 20 20 20 20 20 20 E6 98 BE E7 A4 BA E5 85 A8 E9 83 A8 E6 96 87 E6 9C AC EF BC 8C E6 A0 87 E5 87 BA E5 BD 93 E5 89 8D E8 A1 8C EF BC 88 E5 BD 93 E5 89 8D E8 A1 8C E5 89 8D E6 A0 87 E8 AE B0 20 2A EF BC 89 0D 0A 20 20 68 20 2F 20 48 20 20 20 20 E6 98 BE E7 A4 BA E6 9C AC E5 B8 AE E5 8A A9 0D 0A 20 20 71 20 20 20 20 20 20 20 20 E9 80 80 E5 87 BA 0D 0A 0D 0A E7 A9 BA E8 A1 8C E6 88 96 E5 8F AA E5 90 AB E7 A9 BA E7 99 BD E7 9A 84 E8 BE 93 E5 85 A5 E4 BC 9A E8 A2 AB E5 BF BD E7 95 A5 EF BC 9B E6 97 A0 E6 B3 95 E8 AF 86 E5 88 AB E7 9A 84 E5 91 BD E4 BB A4 E4 BC 9A E7 BB 99 E5 87 BA E6 8F 90 E7 A4 BA E5 B9 B6 E7 BB A7 E7 BB AD E8 BF 90 E8 A1 8C E3 80 82 0D 0A E5 85 B6 E4 BD 99 E7 BC 96 E8 BE 91 E5 91 BD E4 BB A4 EF BC 88 E5 AE 9A E4 BD 8D E3 80 81 E6 8F 92 E5 85 A5 E3 80 81 E5 88 A0 E9 99 A4 E3 80 81 E6 9B BF E6 8D A2 E6 95 B4 E8 A1 8C E3 80 81 E6 9F A5 E6 89 BE E3 80 81 E6 9B BF E6 8D A2 E5 AD 90 E4 B8 B2 E3 80 81 E7 BB 9F E8 AE A1 E3 80 81 E9 87 8D E6 96 B0 E8 AF BB E5 85 A5 E3 80 81 E4 BF 9D E5 AD 98 EF BC 89 E5 B0 86 E5 9C A8 E5 90 8E E7 BB AD E9 98 B6 E6 AE B5 E5 8A A0 E5 85 A5 E3 80 82 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C19
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : [H\nq\n]  (4 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> 用法：editor <输入文件> <输出文件>\r\n\r\n  p        显示全部文本，标出当前行（当前行前标记 *）\r\n  h / H    显示本帮助\r\n  q        退出\r\n\r\n空行或只含空白的输入会被忽略；无法识别的命令会给出提示并继续运行。\r\n其余编辑命令（定位、插入、删除、替换整行、查找、替换子串、统计、重新读入、保存）将在后续阶段加入。\r\n> ]  (473 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20 E7 94 A8 E6 B3 95 EF BC 9A 65 64 69 74 6F 72 20 3C E8 BE 93 E5 85 A5 E6 96 87 E4 BB B6 3E 20 3C E8 BE 93 E5 87 BA E6 96 87 E4 BB B6 3E 0D 0A 0D 0A 20 20 70 20 20 20 20 20 20 20 20 E6 98 BE E7 A4 BA E5 85 A8 E9 83 A8 E6 96 87 E6 9C AC EF BC 8C E6 A0 87 E5 87 BA E5 BD 93 E5 89 8D E8 A1 8C EF BC 88 E5 BD 93 E5 89 8D E8 A1 8C E5 89 8D E6 A0 87 E8 AE B0 20 2A EF BC 89 0D 0A 20 20 68 20 2F 20 48 20 20 20 20 E6 98 BE E7 A4 BA E6 9C AC E5 B8 AE E5 8A A9 0D 0A 20 20 71 20 20 20 20 20 20 20 20 E9 80 80 E5 87 BA 0D 0A 0D 0A E7 A9 BA E8 A1 8C E6 88 96 E5 8F AA E5 90 AB E7 A9 BA E7 99 BD E7 9A 84 E8 BE 93 E5 85 A5 E4 BC 9A E8 A2 AB E5 BF BD E7 95 A5 EF BC 9B E6 97 A0 E6 B3 95 E8 AF 86 E5 88 AB E7 9A 84 E5 91 BD E4 BB A4 E4 BC 9A E7 BB 99 E5 87 BA E6 8F 90 E7 A4 BA E5 B9 B6 E7 BB A7 E7 BB AD E8 BF 90 E8 A1 8C E3 80 82 0D 0A E5 85 B6 E4 BD 99 E7 BC 96 E8 BE 91 E5 91 BD E4 BB A4 EF BC 88 E5 AE 9A E4 BD 8D E3 80 81 E6 8F 92 E5 85 A5 E3 80 81 E5 88 A0 E9 99 A4 E3 80 81 E6 9B BF E6 8D A2 E6 95 B4 E8 A1 8C E3 80 81 E6 9F A5 E6 89 BE E3 80 81 E6 9B BF E6 8D A2 E5 AD 90 E4 B8 B2 E3 80 81 E7 BB 9F E8 AE A1 E3 80 81 E9 87 8D E6 96 B0 E8 AF BB E5 85 A5 E3 80 81 E4 BF 9D E5 AD 98 EF BC 89 E5 B0 86 E5 9C A8 E5 90 8E E7 BB AD E9 98 B6 E6 AE B5 E5 8A A0 E5 85 A5 E3 80 82 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C20
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : [xyz\nq\n]  (6 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> 未知命令：xyz（输入 h 查看帮助）\r\n> ]  (97 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20 E6 9C AA E7 9F A5 E5 91 BD E4 BB A4 EF BC 9A 78 79 7A EF BC 88 E8 BE 93 E5 85 A5 20 68 20 E6 9F A5 E7 9C 8B E5 B8 AE E5 8A A9 EF BC 89 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C21
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : [n\nq\n]  (4 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> 未知命令：n（输入 h 查看帮助）\r\n> ]  (95 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20 E6 9C AA E7 9F A5 E5 91 BD E4 BB A4 EF BC 9A 6E EF BC 88 E8 BE 93 E5 85 A5 20 68 20 E6 9F A5 E7 9C 8B E5 B8 AE E5 8A A9 EF BC 89 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C22
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : [\nq\n]  (3 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> > ]  (50 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C23
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : [   \nq\n]  (6 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> > ]  (50 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C24
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : [q\n]  (2 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> ]  (48 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C25
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : []  (0 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> ]  (48 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C26
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : [q x\nq\n]  (6 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> 未知命令：q x（输入 h 查看帮助）\r\n> ]  (97 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20 E6 9C AA E7 9F A5 E5 91 BD E4 BB A4 EF BC 9A 71 20 78 EF BC 88 E8 BE 93 E5 85 A5 20 68 20 E6 9F A5 E7 9C 8B E5 B8 AE E5 8A A9 EF BC 89 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C27
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : [p x\nq\n]  (6 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> 未知命令：p x（输入 h 查看帮助）\r\n> ]  (97 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20 E6 9C AA E7 9F A5 E5 91 BD E4 BB A4 EF BC 9A 70 20 78 EF BC 88 E8 BE 93 E5 85 A5 20 68 20 E6 9F A5 E7 9C 8B E5 B8 AE E5 8A A9 EF BC 89 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C28
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : [h xyz\nq\n]  (8 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> 未知命令：h xyz（输入 h 查看帮助）\r\n> ]  (99 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20 E6 9C AA E7 9F A5 E5 91 BD E4 BB A4 EF BC 9A 68 20 78 79 7A EF BC 88 E8 BE 93 E5 85 A5 20 68 20 E6 9F A5 E7 9C 8B E5 B8 AE E5 8A A9 EF BC 89 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C29
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : [qq\nq\n]  (5 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> 未知命令：qq（输入 h 查看帮助）\r\n> ]  (96 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20 E6 9C AA E7 9F A5 E5 91 BD E4 BB A4 EF BC 9A 71 71 EF BC 88 E8 BE 93 E5 85 A5 20 68 20 E6 9F A5 E7 9C 8B E5 B8 AE E5 8A A9 EF BC 89 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C30
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : [ q \n]  (4 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> ]  (48 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+
+--- C31
+argv          : [tests/d1/multi_abc.txt] [tests/d1/out.tmp]
+stdin         : [ q x \nq\n]  (8 bytes)
+exit          : 0
+stdout (utf8) : [已读入 3 行，3 个字符\r\n当前行：1\r\n> 未知命令： q x （输入 h 查看帮助）\r\n> ]  (99 bytes, strict-utf8=True)
+stdout (hex)  : E5 B7 B2 E8 AF BB E5 85 A5 20 33 20 E8 A1 8C EF BC 8C 33 20 E4 B8 AA E5 AD 97 E7 AC A6 0D 0A E5 BD 93 E5 89 8D E8 A1 8C EF BC 9A 31 0D 0A 3E 20 E6 9C AA E7 9F A5 E5 91 BD E4 BB A4 EF BC 9A 20 71 20 78 20 EF BC 88 E8 BE 93 E5 85 A5 20 68 20 E6 9F A5 E7 9C 8B E5 B8 AE E5 8A A9 EF BC 89 0D 0A 3E 20
+stderr (utf8) : []  (0 bytes, strict-utf8=True)
+stderr (hex)  : <empty>
+

@@ -1,0 +1,20 @@
+# Local builds and IDE state
+/build*/
+/cmake-build-*/
+/.idea/
+/.vscode/
+*.exe
+*.obj
+*.o
+*.pdb
+__pycache__/
+
+# Generated editor output and acceptance runs
+*.tmp
+trace*.ndjson
+/examples/output.txt
+/tests/*_last_run.txt
+/tests/d1/last_run.txt
+/tests/d1/run_console*.txt
+/tests/week1/run_console.txt
+*.log

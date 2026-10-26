@@ -1,0 +1,15 @@
+* text=auto
+*.cpp text eol=lf
+*.hpp text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.ps1 text eol=lf
+*.html text eol=lf
+*.pdf binary
+*.docx binary
+*.ppt binary
+# Newline fixtures are byte-sensitive.
+tests/d1/*.txt -text
+tests/week1/*.txt -text
+tests/d1/*.txt whitespace=-trailing-space,-blank-at-eof,cr-at-eol
+tests/week1/*.txt whitespace=-trailing-space,-blank-at-eof,cr-at-eol

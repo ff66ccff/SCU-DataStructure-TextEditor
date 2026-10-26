@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>链表状态回放</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --background: 0 0% 100%;
+      --foreground: 240 10% 3.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 240 10% 3.9%;
+      --muted: 240 4.8% 95.9%;
+      --muted-foreground: 240 3.8% 46.1%;
+      --primary: 240 5.9% 10%;
+      --primary-foreground: 0 0% 98%;
+      --secondary: 240 4.8% 95.9%;
+      --accent: 240 4.8% 95.9%;
+      --destructive: 0 84.2% 60.2%;
+      --border: 240 5.9% 90%;
+      --ring: 240 10% 3.9%;
+      --success: 142 71% 35%;
+      --warning: 38 92% 45%;
+      --radius: .55rem;
+      font-family: Inter, ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+      background: hsl(var(--background));
+      color: hsl(var(--foreground));
+    }
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --background: 240 10% 3.9%;
+      --foreground: 0 0% 98%;
+      --card: 240 10% 3.9%;
+      --card-foreground: 0 0% 98%;
+      --muted: 240 3.7% 15.9%;
+      --muted-foreground: 240 5% 64.9%;
+      --primary: 0 0% 98%;
+      --primary-foreground: 240 5.9% 10%;
+      --secondary: 240 3.7% 15.9%;
+      --accent: 240 3.7% 15.9%;
+      --destructive: 0 62.8% 30.6%;
+      --border: 240 3.7% 15.9%;
+      --ring: 240 4.9% 83.9%;
+      --success: 142 70% 48%;
+      --warning: 38 92% 58%;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 960px; background: hsl(var(--background)); color: hsl(var(--foreground)); }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+    .topbar { position: sticky; z-index: 5; top: 0; display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 18px; border-bottom: 1px solid hsl(var(--border)); background: hsl(var(--background) / .96); backdrop-filter: blur(10px); }
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 205px; font-weight: 700; }
+    .brand-mark { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 9px; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); font-family: ui-monospace, monospace; }
+    .filename { min-width: 0; overflow: hidden; color: hsl(var(--muted-foreground)); text-overflow: ellipsis; white-space: nowrap; }
+    .grow { flex: 1; }
+    .toolbar, .tabs, .button-row { display: flex; align-items: center; gap: 7px; }
+    .button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 34px; padding: 6px 11px; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) - 2px); background: hsl(var(--card)); color: hsl(var(--foreground)); }
+    .button:hover { background: hsl(var(--accent)); }
+    .button.primary { border-color: hsl(var(--primary)); background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+    .button:disabled { cursor: not-allowed; opacity: .45; }
+    .button.icon { width: 36px; padding: 0; font-size: 17px; }
+    .button[data-active="true"] { border-color: hsl(var(--foreground)); background: hsl(var(--muted)); }
+    .step-count, .badge { display: inline-flex; align-items: center; gap: 5px; min-height: 22px; padding: 2px 8px; border: 1px solid hsl(var(--border)); border-radius: 999px; color: hsl(var(--muted-foreground)); font-size: 12px; white-space: nowrap; }
+    .badge.primary { border-color: hsl(var(--primary)); background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+    .badge.success { border-color: hsl(var(--success) / .35); background: hsl(var(--success) / .12); color: hsl(var(--success)); }
+    .badge.warning { border-color: hsl(var(--warning) / .35); background: hsl(var(--warning) / .12); color: hsl(var(--warning)); }
+    .badge.danger { border-color: hsl(var(--destructive) / .45); background: hsl(var(--destructive) / .12); color: hsl(var(--destructive)); }
+    .alert-stack { display: grid; gap: 8px; padding: 10px 18px 0; }
+    .alert { padding: 9px 12px; border: 1px solid hsl(var(--destructive) / .5); border-radius: var(--radius); background: hsl(var(--destructive) / .1); color: hsl(var(--destructive)); font-size: 13px; }
+    .alert.info { border-color: hsl(var(--border)); background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+    .layout { display: grid; grid-template-columns: 250px minmax(440px, 1fr) 280px; min-height: calc(100vh - 123px); }
+    .panel { min-width: 0; padding: 16px; }
+    .timeline-panel { border-right: 1px solid hsl(var(--border)); }
+    .details-panel { border-left: 1px solid hsl(var(--border)); }
+    .panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+    .panel-heading h2, .panel-heading h3 { margin: 0; font-size: 14px; }
+    .small { color: hsl(var(--muted-foreground)); font-size: 12px; }
+    .timeline { display: grid; gap: 6px; max-height: calc(100vh - 235px); overflow: auto; padding-right: 3px; }
+    .timeline-item { display: grid; grid-template-columns: 36px 10px minmax(0, 1fr); align-items: start; gap: 8px; width: 100%; padding: 9px 8px; border: 1px solid transparent; border-radius: var(--radius); background: transparent; color: inherit; text-align: left; }
+    .timeline-item:hover { background: hsl(var(--muted)); }
+    .timeline-item[aria-current="step"] { border-color: hsl(var(--border)); background: hsl(var(--muted)); }
+    .timeline-seq { color: hsl(var(--muted-foreground)); font-family: ui-monospace, monospace; font-size: 12px; }
+    .status-dot { width: 8px; height: 8px; margin-top: 4px; border-radius: 50%; background: hsl(var(--success)); }
+    .status-dot.failed { background: hsl(var(--destructive)); }
+    .timeline-name { display: block; overflow: hidden; font-size: 12px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    .timeline-argv { display: block; overflow: hidden; margin-top: 3px; color: hsl(var(--muted-foreground)); font-family: ui-monospace, monospace; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .center-panel { display: flex; min-width: 0; flex-direction: column; gap: 12px; }
+    .main-heading { display: flex; align-items: center; gap: 12px; min-height: 34px; }
+    .main-heading h1 { overflow: hidden; margin: 0; font-size: 16px; text-overflow: ellipsis; white-space: nowrap; }
+    .main-heading .tabs { margin-left: auto; }
+    .tab { min-height: 32px; padding: 5px 9px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: hsl(var(--muted-foreground)); font-size: 12px; }
+    .tab[aria-selected="true"] { border-bottom-color: hsl(var(--primary)); color: hsl(var(--foreground)); }
+    .view-panel { display: none; min-width: 0; }
+    .view-panel.active { display: block; }
+    .card { min-width: 0; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--card)); }
+    .graph-card { overflow: hidden; }
+    .graph-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 11px 13px; border-bottom: 1px solid hsl(var(--border)); }
+    .graph-title strong { font-size: 13px; }
+    .graph-scroll { overflow: auto; min-height: 430px; background-image: radial-gradient(hsl(var(--border)) .7px, transparent .7px); background-size: 18px 18px; }
+    .graph-scroll svg { display: block; min-height: 430px; }
+    .graph-node { cursor: pointer; }
+    .graph-node .node-body { fill: hsl(var(--card)); stroke: hsl(var(--border)); stroke-width: 1.5; }
+    .graph-node:hover .node-body { stroke: hsl(var(--ring)); }
+    .graph-node.current .node-body { stroke: hsl(var(--primary)); stroke-width: 3; }
+    .graph-node.added .node-body { stroke: hsl(var(--success)); stroke-width: 3; }
+    .graph-node.content-updated .node-body { stroke: hsl(var(--warning)); stroke-width: 3; }
+    .graph-node.removed-before .node-body { stroke: hsl(var(--destructive)); stroke-width: 3; stroke-dasharray: 7 4; }
+    .graph-node.sentinel .node-body { fill: hsl(var(--muted)); stroke-dasharray: 5 3; }
+    .graph-node .node-id { fill: hsl(var(--foreground)); font: 700 13px ui-monospace, monospace; }
+    .graph-node .node-meta, .graph-node .node-text { fill: hsl(var(--muted-foreground)); font: 11px ui-monospace, monospace; }
+    .graph-node .node-text { fill: hsl(var(--foreground)); }
+    .edge-next { fill: none; stroke: hsl(var(--foreground) / .72); stroke-width: 2; marker-end: url(#arrow-next); }
+    .edge-prev { fill: none; stroke: hsl(var(--muted-foreground) / .75); stroke-width: 1.5; stroke-dasharray: 6 5; marker-end: url(#arrow-prev); }
+    .edge-changed { stroke: hsl(var(--warning)); stroke-width: 3.5; }
+    .edge-label { fill: hsl(var(--muted-foreground)); font: 11px ui-sans-serif, system-ui; }
+    .current-arrow { fill: hsl(var(--primary)); font: 700 13px ui-sans-serif, system-ui; }
+    .current-arrow.old { opacity: .45; }
+    .null-label { fill: hsl(var(--muted-foreground)); font: 11px ui-monospace, monospace; }
+    .window-note { padding: 8px 12px; border-top: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); font-size: 12px; }
+    .history-section { display: grid; gap: 8px; padding: 12px; border-top: 1px solid hsl(var(--border)); }
+    .history-card { display: inline-grid; gap: 5px; min-width: 180px; padding: 9px; border: 1px dashed hsl(var(--destructive)); border-radius: var(--radius); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-family: ui-monospace, monospace; font-size: 12px; }
+    .history-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .compare-grid .graph-scroll { min-height: 430px; }
+    .compare-grid .graph-scroll svg { min-height: 430px; }
+    .compare-grid .graph-title { min-height: 43px; }
+    .raw-json { max-height: calc(100vh - 210px); overflow: auto; padding: 16px; color: hsl(var(--foreground)); font: 12px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre; }
+    .table-wrap { overflow: auto; max-height: calc(100vh - 210px); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid hsl(var(--border)); text-align: left; vertical-align: top; }
+    th { position: sticky; top: 0; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-weight: 600; }
+    td.code { font-family: ui-monospace, monospace; }
+    .detail-block { display: grid; gap: 8px; padding: 11px 0; border-bottom: 1px solid hsl(var(--border)); }
+    .detail-block:last-child { border-bottom: 0; }
+    .detail-block h3 { margin: 0; font-size: 12px; }
+    .detail-text { overflow-wrap: anywhere; padding: 8px; border-radius: 6px; background: hsl(var(--muted)); font: 12px/1.5 ui-monospace, monospace; white-space: pre-wrap; }
+    .link-buttons { display: flex; flex-wrap: wrap; gap: 5px; }
+    .link-chip { padding: 3px 7px; border: 1px solid hsl(var(--border)); border-radius: 999px; background: transparent; color: hsl(var(--foreground)); font: 11px ui-monospace, monospace; }
+    .legend { display: grid; gap: 8px; font-size: 11px; color: hsl(var(--muted-foreground)); }
+    .legend-row { display: flex; align-items: center; gap: 8px; }
+    .swatch { width: 20px; height: 10px; border: 2px solid hsl(var(--border)); border-radius: 3px; }
+    .swatch.current { border-color: hsl(var(--primary)); }
+    .swatch.added { border-color: hsl(var(--success)); }
+    .swatch.updated { border-color: hsl(var(--warning)); }
+    .swatch.history { border: 2px dashed hsl(var(--destructive)); }
+    .swatch.prev-line { border: 0; border-top: 2px dashed hsl(var(--muted-foreground)); border-radius: 0; }
+    .swatch.next-line { border: 0; border-top: 2px solid hsl(var(--foreground)); border-radius: 0; }
+    .footer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 44px; padding: 8px 18px; border-top: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); font-size: 12px; }
+    .footer strong { color: hsl(var(--foreground)); font-weight: 600; }
+    .empty-hint { display: grid; min-height: 410px; place-items: center; padding: 20px; color: hsl(var(--muted-foreground)); text-align: center; }
+    .empty-hint strong { display: block; margin-bottom: 7px; color: hsl(var(--foreground)); }
+    dialog { max-width: 520px; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--card)); color: hsl(var(--foreground)); }
+    dialog::backdrop { background: hsl(240 10% 3.9% / .55); }
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 220px minmax(400px, 1fr); }
+      .details-panel { grid-column: 1 / -1; border-top: 1px solid hsl(var(--border)); border-left: 0; }
+      .details-panel .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+      .timeline { max-height: 62vh; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">↔</span><span>链表状态回放</span></div>
+    <button class="button primary" id="openFile">载入 trace.ndjson</button>
+    <input id="fileInput" type="file" accept=".ndjson,.jsonl,.txt" hidden>
+    <span class="filename" id="filename">拖入 NDJSON 文件，或点击载入</span>
+    <span class="grow"></span>
+    <span class="step-count" id="stepCount">0 / 0</span>
+    <div class="toolbar">
+      <button class="button icon" id="previous" aria-label="上一步" title="上一步 (←)">‹</button>
+      <button class="button icon" id="play" aria-label="播放" title="播放/暂停 (空格)">▶</button>
+      <button class="button icon" id="next" aria-label="下一步" title="下一步 (→)">›</button>
+      <button class="button" id="theme" title="切换主题">深色</button>
+      <button class="button" id="shortcuts" title="快捷键帮助 (h)">快捷键</button>
+    </div>
+  </header>
+  <div class="alert-stack" id="alerts" aria-live="polite"></div>
+  <div class="layout" id="dropZone">
+    <aside class="panel timeline-panel">
+      <div class="panel-heading"><h2>操作时间线</h2><span class="small" id="timelineTotal">0 步</span></div>
+      <div class="timeline" id="timeline"></div>
+      <div class="small" style="margin-top:12px">点击任一步可直接查看该步完整快照。</div>
+    </aside>
+    <main class="panel center-panel">
+      <div class="main-heading">
+        <h1 id="stepHeading">等待载入 trace 文件</h1>
+        <div class="tabs" role="tablist" aria-label="视图">
+          <button class="tab" data-view="single" role="tab" aria-selected="true">单步画布</button>
+          <button class="tab" data-view="compare" role="tab" aria-selected="false">前后对照</button>
+          <button class="tab" data-view="table" role="tab" aria-selected="false">结点表</button>
+          <button class="tab" data-view="raw" role="tab" aria-selected="false">原始 JSON</button>
+        </div>
+      </div>
+      <section class="view-panel active" id="singleView" data-panel="single">
+        <div class="card graph-card" id="singleGraph"></div>
+      </section>
+      <section class="view-panel" id="compareView" data-panel="compare">
+        <div class="compare-grid">
+          <div class="card graph-card" id="beforeGraph"></div>
+          <div class="card graph-card" id="afterGraph"></div>
+        </div>
+      </section>
+      <section class="view-panel card table-wrap" id="tableView" data-panel="table">
+        <table><thead><tr><th>顺序</th><th>id</th><th>kind</th><th>row</th><th>text</th><th>len</th><th>prev</th><th>next</th><th>当前行</th></tr></thead><tbody id="nodeRows"></tbody></table>
+      </section>
+      <section class="view-panel card raw-json" id="rawView" data-panel="raw" tabindex="0"></section>
+    </main>
+    <aside class="panel details-panel">
+      <div class="panel-heading"><h2>状态详情与图例</h2><label class="small"><input id="showHistory" type="checkbox"> 显示删除历史</label></div>
+      <div class="detail-grid">
+        <section id="details"></section>
+        <section class="detail-block">
+          <h3>图例</h3>
+          <div class="legend">
+            <div class="legend-row"><span class="swatch"></span>存活数据结点</div>
+            <div class="legend-row"><span class="swatch current"></span>当前行与独立指针</div>
+            <div class="legend-row"><span class="badge">HEAD / TAIL</span>头尾哨兵</div>
+            <div class="legend-row"><span class="swatch next-line"></span>next 实线箭头 →</div>
+            <div class="legend-row"><span class="swatch prev-line"></span>prev 虚线箭头 ←</div>
+            <div class="legend-row"><span class="badge">∅ NULL</span>真实空指针</div>
+            <div class="legend-row"><span class="swatch added"></span>本步新增结点</div>
+            <div class="legend-row"><span class="swatch updated"></span>本步改链 / 内容更新</div>
+            <div class="legend-row"><span class="swatch history"></span>已释放历史副本</div>
+          </div>
+        </section>
+      </div>
+    </aside>
+  </div>
+  <footer class="footer" id="statusBar"><span>文件状态：<strong>未载入</strong></span></footer>
+  <dialog id="shortcutDialog">
+    <h2>键盘快捷键</h2>
+    <p>← / →：上一步 / 下一步　　Home / End：第一步 / 最后一步</p>
+    <p>空格：播放 / 暂停　　1–4：切换视图　　h：显示此帮助</p>
+    <form method="dialog"><button class="button primary">关闭</button></form>
+  </dialog>
+  <script>
+    "use strict";
+    const state = { meta: null, steps: [], raw: [], index: 0, view: "single", playing: false, timer: null, selectedId: null, theme: "light" };
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+    const svgNs = "http://www.w3.org/2000/svg";
+
+    function html(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    }
+    function svg(tag, attrs = {}, text) {
+      const node = document.createElementNS(svgNs, tag);
+      for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
+      if (text !== undefined) node.textContent = text;
+      return node;
+    }
+    function formatValue(value) { return value === null || value === undefined ? "null" : String(value); }
+    function currentStep() { return state.steps[state.index] || null; }
+
+    function deriveWalk(step) {
+      const errors = [];
+      if (!step || !Array.isArray(step.nodes)) return { walk: [], data: [], map: new Map(), errors: ["当前步骤没有 nodes 数组"] };
+      const map = new Map();
+      let duplicate = false;
+      for (const node of step.nodes) {
+        if (map.has(node.id)) duplicate = true;
+        map.set(node.id, node);
+      }
+      if (duplicate) errors.push("nodes 中存在重复 id");
+      const head = step.nodes.find(node => node.kind === "sentinel" && node.side === "head");
+      const tail = step.nodes.find(node => node.kind === "sentinel" && node.side === "tail");
+      if (!head || !tail) errors.push("快照缺少头哨兵或尾哨兵");
+      const walk = [];
+      const visited = new Set();
+      let cursor = head || null;
+      while (cursor) {
+        if (visited.has(cursor.id)) { errors.push("沿 next 遍历时发现环"); break; }
+        visited.add(cursor.id);
+        walk.push(cursor);
+        if (cursor === tail) break;
+        if (cursor.next === null) { errors.push("next 链在尾哨兵之前遇到 null"); break; }
+        const next = map.get(cursor.next);
+        if (!next) { errors.push(`结点 #${cursor.id} 的 next 指向不存在的 #${cursor.next}`); break; }
+        if (next.prev !== cursor.id) errors.push(`prev/next 不一致：#${cursor.id} → #${next.id}`);
+        cursor = next;
+      }
+      if (tail && walk[walk.length - 1] !== tail) errors.push("从 head 沿 next 未到达 tail");
+      if (walk.length !== step.nodes.length) errors.push("存在无法从 head 沿 next 到达的结点");
+      const data = walk.filter(node => node.kind === "data");
+      const ordinalData = step.nodes.filter(node => node.kind === "data").slice().sort((a, b) => a.ordinal - b.ordinal);
+      if (data.length !== ordinalData.length || data.some((node, i) => node.id !== ordinalData[i]?.id)) {
+        errors.push("next 遍历顺序与 ordinal 自检不一致");
+      }
+      if (data.length !== step.doc?.data_nodes) errors.push("next 遍历数量与 doc.data_nodes 不一致");
+      if (step.current !== null && !data.some(node => node.id === step.current)) errors.push("current 不指向存活数据结点");
+      if ((data.length === 0) !== Boolean(step.doc?.empty_doc)) errors.push("empty_doc 与数据结点数量不一致");
+      if (step.checks && Object.entries(step.checks).some(([key, value]) => typeof value === "boolean" && value === false)) {
+        errors.push("C++ 写入方 checks 报告链表自检失败");
+      }
+      return { walk, data, map, errors };
+    }
+
+    function showAlerts(messages) {
+      const root = $("#alerts");
+      root.replaceChildren();
+      for (const message of [...new Set(messages)]) {
+        const alert = html("div", "alert", message);
+        root.append(alert);
+      }
+    }
+
+    function setView(name) {
+      state.view = name;
+      $$(".tab").forEach(tab => tab.setAttribute("aria-selected", String(tab.dataset.view === name)));
+      $$("[data-panel]").forEach(panel => panel.classList.toggle("active", panel.dataset.panel === name));
+    }
+
+    function renderTimeline() {
+      const timeline = $("#timeline");
+      timeline.replaceChildren();
+      for (let i = 0; i < state.steps.length; i++) {
+        const step = state.steps[i];
+        const item = html("button", "timeline-item");
+        item.type = "button";
+        item.setAttribute("aria-current", i === state.index ? "step" : "false");
+        const seq = html("span", "timeline-seq", `#${step.seq ?? i}`);
+        const dot = html("span", `status-dot${step.ok === false ? " failed" : ""}`);
+        const description = html("span", "");
+        description.append(html("span", "timeline-name", step.op_zh || step.op || "未知操作"));
+        description.append(html("span", "timeline-argv", step.argv || ""));
+        item.append(seq, dot, description);
+        item.addEventListener("click", () => goTo(i));
+        timeline.append(item);
+      }
+      $("#timelineTotal").textContent = `${state.steps.length} 步`;
+      $("#stepCount").textContent = state.steps.length ? `${state.index + 1} / ${state.steps.length}` : "0 / 0";
+      $("#previous").disabled = state.index <= 0 || state.steps.length === 0;
+      $("#next").disabled = state.index >= state.steps.length - 1 || state.steps.length === 0;
+    }
+
+    function addText(parent, x, y, text, className, anchor = "start") {
+      parent.append(svg("text", { x, y, "text-anchor": anchor, class: className }, text));
+    }
+
+    function renderGraph(container, step, options = {}) {
+      container.replaceChildren();
+      const before = Boolean(options.before);
+      const title = html("div", "graph-title");
+      title.append(html("strong", "", options.title || (before ? "操作前状态" : "当前状态")));
+      if (step) title.append(html("span", "small", `#${step.seq ?? "?"} ${step.op_zh || step.op || ""}`));
+      container.append(title);
+      if (!step) {
+        container.append(html("div", "empty-hint", "没有可显示的步骤"));
+        return;
+      }
+      const derived = deriveWalk(step);
+      const { walk, data, map } = derived;
+      const scroller = html("div", "graph-scroll");
+      const allDataCount = data.length;
+      let visible = walk;
+      let windowNote = "";
+      if (!options.forceFull && allDataCount > 60) {
+        let currentId = before ? step.changed?.current_before : step.current;
+        if (currentId == null) currentId = step.current;
+        let center = data.findIndex(node => node.id === currentId);
+        if (center < 0) center = 0;
+        let start = Math.max(0, center - 15);
+        let end = Math.min(allDataCount, start + 31);
+        start = Math.max(0, end - 31);
+        visible = [];
+        if (start === 0 && walk[0]) visible.push(walk[0]);
+        visible.push(...data.slice(start, end));
+        if (end === allDataCount && walk[walk.length - 1]) visible.push(walk[walk.length - 1]);
+        windowNote = `画布按真实 next 链显示第 ${start + 1}–${end} 行；前方省略 ${start} 行，后方省略 ${allDataCount - end} 行。结点表可查看完整链表。`;
+      }
+
+      const width = 190;
+      const spacing = 260;
+      const left = 42;
+      const top = 158;
+      const height = 136;
+      const cardWidth = node => node.kind === "sentinel" ? 112 : width;
+      const svgWidth = Math.max(940, left * 2 + Math.max(0, visible.length - 1) * spacing + width);
+      const canvas = svg("svg", { viewBox: `0 0 ${svgWidth} 420`, width: svgWidth, height: 420, role: "img", "aria-label": "从 head 沿 next 展示的真实链表状态" });
+      const defs = svg("defs");
+      const markerNext = svg("marker", { id: "arrow-next", markerWidth: 8, markerHeight: 8, refX: 7, refY: 4, orient: "auto", markerUnits: "strokeWidth" });
+      markerNext.append(svg("path", { d: "M0,0 L8,4 L0,8 z", fill: "currentColor" }));
+      const markerPrev = svg("marker", { id: "arrow-prev", markerWidth: 8, markerHeight: 8, refX: 7, refY: 4, orient: "auto", markerUnits: "strokeWidth" });
+      markerPrev.append(svg("path", { d: "M0,0 L8,4 L0,8 z", fill: "currentColor" }));
+      defs.append(markerNext, markerPrev);
+      canvas.append(defs);
+
+      const positions = new Map();
+      visible.forEach((node, index) => positions.set(node.id, left + index * spacing + cardWidth(node) / 2));
+      const transition = options.transition || step;
+      const changed = transition.changed || {};
+      const relinked = Array.isArray(changed.relinked) ? changed.relinked : [];
+      const edgeWas = new Set(relinked.map(edge => `${edge.from}:${edge.dir}:${formatValue(edge.was)}`));
+      const edgeNow = new Set(relinked.map(edge => `${edge.from}:${edge.dir}:${formatValue(edge.now)}`));
+      const highlightEdges = before ? edgeWas : edgeNow;
+      const edgeLayer = svg("g");
+      for (let i = 0; i < visible.length; i++) {
+        const node = visible[i];
+        const center = positions.get(node.id);
+        const cardW = cardWidth(node);
+        if (node.next !== null && positions.has(node.next)) {
+          const target = map.get(node.next);
+          const x1 = center + cardW / 2;
+          const x2 = positions.get(node.next) - cardWidth(target) / 2;
+          const y = top + height + 25;
+          const edgeClass = `edge-next${highlightEdges.has(`${node.id}:next:${node.next}`) ? " edge-changed" : ""}`;
+          edgeLayer.append(svg("path", { d: `M ${x1} ${top + height} C ${x1 + 26} ${y}, ${x2 - 26} ${y}, ${x2} ${top + height}`, class: edgeClass }));
+          addText(edgeLayer, (x1 + x2) / 2, y + 5, "next", "edge-label", "middle");
+        }
+        if (node.prev !== null && positions.has(node.prev)) {
+          const target = map.get(node.prev);
+          const x1 = center - cardW / 2;
+          const x2 = positions.get(node.prev) + cardWidth(target) / 2;
+          const y = top - 16;
+          const edgeClass = `edge-prev${highlightEdges.has(`${node.id}:prev:${node.prev}`) ? " edge-changed" : ""}`;
+          edgeLayer.append(svg("path", { d: `M ${x1} ${top} C ${x1 - 25} ${y}, ${x2 + 25} ${y}, ${x2} ${top}`, class: edgeClass }));
+          addText(edgeLayer, (x1 + x2) / 2, y - 6, "prev", "edge-label", "middle");
+        }
+      }
+      canvas.append(edgeLayer);
+
+      const currentId = before ? changed.current_before : step.current;
+      if (currentId != null && positions.has(currentId)) {
+        const x = positions.get(currentId);
+        canvas.append(svg("path", { d: `M ${x} 118 L ${x} 148`, stroke: "currentColor", "stroke-width": 1.5 }));
+        addText(canvas, x, 108, before ? "▲ 操作前 current" : "▲ 当前行指针", `current-arrow${before ? " old" : ""}`, "middle");
+      }
+      if (visible[0]?.kind === "sentinel" && visible[0].side === "head" && visible[0].prev === null) {
+        addText(canvas, 8, top + 75, "∅ NULL", "null-label");
+      } else if (visible.length && data.length > 60) {
+        addText(canvas, 8, top + 75, "… 前方", "null-label");
+      }
+      const last = visible[visible.length - 1];
+      if (last?.kind === "sentinel" && last.side === "tail" && last.next === null) {
+        addText(canvas, svgWidth - 5, top + 75, "∅ NULL", "null-label", "end");
+      } else if (visible.length && data.length > 60) {
+        addText(canvas, svgWidth - 5, top + 75, "后方 …", "null-label", "end");
+      }
+
+      const addedIds = new Set(changed.added || []);
+      const changedIds = new Set((changed.content_changed || []).map(item => item.id));
+      const removedIds = new Set((changed.removed || []).map(item => item.id));
+      visible.forEach((node, index) => {
+        const center = positions.get(node.id);
+        const cardW = cardWidth(node);
+        const group = svg("g", { class: `graph-node${node.kind === "sentinel" ? " sentinel" : ""}${node.id === currentId ? " current" : ""}${addedIds.has(node.id) ? " added" : ""}${changedIds.has(node.id) ? " content-updated" : ""}${before && removedIds.has(node.id) ? " removed-before" : ""}`, tabindex: 0, role: "button", "aria-label": node.kind === "sentinel" ? `${node.side} 哨兵 #${node.id}` : `第 ${node.row} 行，结点 #${node.id}，${node.text}` });
+        group.append(svg("title", {}, node.kind === "data" ? `#${node.id} row ${node.row}: ${node.text}` : `${node.side} sentinel #${node.id}`));
+        if (node.kind === "sentinel") {
+          const points = `${center},${top + 8} ${center + 20},${top + 24} ${center},${top + 40} ${center - 20},${top + 24}`;
+          group.append(svg("polygon", { points, class: "node-body" }));
+          addText(group, center, top + 29, node.side === "head" ? "HEAD" : "TAIL", "node-id", "middle");
+          addText(group, center, top + 65, `#${node.id}`, "node-meta", "middle");
+          addText(group, center, top + 89, `prev ${formatValue(node.prev)}`, "node-meta", "middle");
+          addText(group, center, top + 108, `next ${formatValue(node.next)}`, "node-meta", "middle");
+        } else {
+          group.append(svg("rect", { x: center - cardW / 2, y: top, width: cardW, height, rx: 10, class: "node-body" }));
+          addText(group, center - cardW / 2 + 12, top + 22, `#${node.id}`, "node-id");
+          addText(group, center + cardW / 2 - 12, top + 22, `row ${node.row}`, "node-meta", "end");
+          addText(group, center - cardW / 2 + 12, top + 48, `len ${node.len}${node.len === 0 ? " · 空行" : ""}`, "node-meta");
+          addText(group, center - cardW / 2 + 12, top + 72, node.text === "" ? "(空字符串)" : (node.text.length > 22 ? `${node.text.slice(0, 22)}…` : node.text), "node-text");
+          addText(group, center - cardW / 2 + 12, top + 99, `prev ${formatValue(node.prev)}`, "node-meta");
+          addText(group, center - cardW / 2 + 12, top + 119, `next ${formatValue(node.next)} · rev ${node.content_rev}`, "node-meta");
+          if (node.id === currentId) addText(group, center + cardW / 2 - 12, top + 48, "当前行", "node-meta", "end");
+          if (addedIds.has(node.id)) addText(group, center + cardW / 2 - 12, top + 68, "新增", "node-meta", "end");
+          if (changedIds.has(node.id)) addText(group, center + cardW / 2 - 12, top + 89, "内容更新", "node-meta", "end");
+          if (before && removedIds.has(node.id)) addText(group, center + cardW / 2 - 12, top + 89, "历史状态", "node-meta", "end");
+          group.addEventListener("click", () => selectNode(node.id));
+          group.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectNode(node.id); } });
+        }
+        canvas.append(group);
+      });
+
+      if (step.doc?.empty_doc) {
+        const x = svgWidth / 2;
+        canvas.append(svg("rect", { x: x - 160, y: 355, width: 320, height: 42, rx: 8, fill: "transparent", stroke: "currentColor", "stroke-dasharray": "6 4", opacity: .55 }));
+        addText(canvas, x, 381, "空文档：没有数据结点，也没有当前行", "edge-label", "middle");
+      }
+      scroller.append(canvas);
+      container.append(scroller);
+      if (windowNote) container.append(html("div", "window-note", windowNote));
+
+      const history = changed.removed || [];
+      if (history.length && $("#showHistory").checked) {
+        const section = html("div", "history-section");
+        section.append(html("strong", "", "删除历史副本（已释放，不属于当前链表）"));
+        const row = html("div", "history-row");
+        for (const item of history) {
+          const card = html("div", "history-card");
+          card.append(html("strong", "", `历史 #${item.id} · row ${item.last_row}`));
+          card.append(html("span", "", `text: ${item.text === "" ? "(空字符串)" : item.text}`));
+          card.append(html("span", "", `prev: ${formatValue(item.prev_at_removal)} · next: ${formatValue(item.next_at_removal)}`));
+          card.append(html("span", "badge danger", item.freed ? "freed: true" : "历史"));
+          row.append(card);
+        }
+        section.append(row);
+        container.append(section);
+      }
+    }
+
+    function renderDetails() {
+      const root = $("#details");
+      root.replaceChildren();
+      const step = currentStep();
+      if (!step) return;
+      const derived = deriveWalk(step);
+      const node = derived.map.get(state.selectedId) || derived.map.get(step.current) || derived.data[0];
+      if (node && node.kind === "data") {
+        state.selectedId = node.id;
+        const block = html("section", "detail-block");
+        const heading = html("div", "button-row");
+        heading.append(html("span", "badge primary", `#${node.id}`));
+        heading.append(html("span", "badge", `row ${node.row}`));
+        heading.append(html("span", "badge", `rev ${node.content_rev}`));
+        if (node.id === step.current) heading.append(html("span", "badge success", "当前行"));
+        block.append(html("h3", "", "数据结点详情"), heading);
+        block.append(html("div", "detail-text", node.text === "" ? "(空字符串)" : node.text));
+        block.append(html("div", "small", `len = ${node.len}${node.len === 0 ? " · 空行结点，不是空文档" : ""}`));
+        const links = html("div", "link-buttons");
+        for (const [label, id] of [["prev", node.prev], ["next", node.next]]) {
+          const chip = html("button", "link-chip", id === null ? `${label}: ∅ NULL` : `${label}: #${id}`);
+          chip.type = "button";
+          chip.disabled = id === null || !derived.map.has(id) || derived.map.get(id).kind === "sentinel";
+          if (!chip.disabled) chip.addEventListener("click", () => selectNode(id));
+          links.append(chip);
+        }
+        block.append(links);
+        root.append(block);
+      } else {
+        state.selectedId = null;
+        root.append(html("div", "detail-block", "空文档：没有数据结点，也没有当前行。"));
+      }
+      const change = html("section", "detail-block");
+      change.append(html("h3", "", "本步变化"));
+      const changed = step.changed || {};
+      change.append(html("div", "small", `新增 ${changed.added?.length || 0} · 删除 ${changed.removed?.length || 0} · 改链 ${changed.relinked?.length || 0} · 内容更新 ${changed.content_changed?.length || 0}`));
+      change.append(html("div", "small", `current: ${formatValue(changed.current_before)} → ${formatValue(changed.current_after)}`));
+      root.append(change);
+    }
+
+    function renderTable(step) {
+      const tbody = $("#nodeRows");
+      tbody.replaceChildren();
+      if (!step) return;
+      const derived = deriveWalk(step);
+      derived.walk.forEach((node, ordinal) => {
+        const tr = document.createElement("tr");
+        const values = [ordinal, node.id, node.kind === "sentinel" ? `${node.side} sentinel` : "data", node.row ?? "—", node.text ?? "—", node.len, formatValue(node.prev), formatValue(node.next), node.id === step.current ? "是" : "否"];
+        for (let i = 0; i < values.length; i++) {
+          const td = html("td", i === 1 || i >= 5 ? "code" : "", String(values[i]));
+          if (i === 1 && node.kind === "data") {
+            td.tabIndex = 0;
+            td.addEventListener("click", () => selectNode(node.id));
+          }
+          tr.append(td);
+        }
+        tbody.append(tr);
+      });
+    }
+
+    function render() {
+      const step = currentStep();
+      renderTimeline();
+      if (!step) {
+        $("#stepHeading").textContent = "等待载入 trace 文件";
+        $("#singleGraph").replaceChildren(html("div", "empty-hint", "载入 codes 生成的 trace.ndjson 后，这里会按真实 next 指针绘制链表。"));
+        $("#beforeGraph").replaceChildren();
+        $("#afterGraph").replaceChildren();
+        $("#rawView").textContent = "";
+        $("#nodeRows").replaceChildren();
+        $("#details").replaceChildren();
+        showAlerts([]);
+        $("#statusBar").textContent = "文件状态：未载入";
+        return;
+      }
+      const derived = deriveWalk(step);
+      const opName = step.op_zh || step.op || "未知操作";
+      $("#stepHeading").textContent = `#${step.seq ?? state.index} · ${opName}${step.argv ? ` · ${step.argv}` : ""}`;
+      renderGraph($("#singleGraph"), step, { title: `步骤 ${step.seq ?? state.index} · ${opName}` });
+      const previous = state.index > 0 ? state.steps[state.index - 1] : null;
+      renderGraph($("#beforeGraph"), previous, { before: true, transition: step, title: previous ? `操作前 · #${previous.seq ?? state.index - 1}` : "操作前 · 无前置步骤" });
+      renderGraph($("#afterGraph"), step, { transition: step, title: `操作后 · #${step.seq ?? state.index}` });
+      renderTable(step);
+      renderDetails();
+      const rawIndex = state.index;
+      $("#rawView").textContent = state.raw[rawIndex] || JSON.stringify(step, null, 2);
+      const messages = derived.errors.slice();
+      if (state.meta?.version && String(state.meta.version).split(".")[0] !== "1") messages.unshift(`协议主版本 ${state.meta.version} 与当前页面的 v1 读取器不同；当前按已知字段只读显示。`);
+      if (step.ok === false && step.error) messages.push(`${step.error.code || "操作失败"}：${step.error.message || ""}`);
+      showAlerts(messages);
+      const checks = step.checks || {};
+      const checksFailed = Object.entries(checks).filter(([, value]) => value === false).map(([key]) => key);
+      const status = html("span", "", "文件状态：");
+      status.append(html("strong", "", state.meta?.format || "line-editor-trace"));
+      status.append(html("span", "", ` · rows ${step.doc?.rows ?? derived.data.length} · chars ${step.doc?.chars ?? "?"} · data_nodes ${step.doc?.data_nodes ?? derived.data.length} · empty_doc ${step.doc?.empty_doc ?? false}`));
+      status.append(html("span", checksFailed.length ? "badge danger" : "badge success", checksFailed.length ? `自检失败：${checksFailed.join(", ")}` : "链表自检通过"));
+      $("#statusBar").replaceChildren(status);
+      $("#play").textContent = state.playing ? "Ⅱ" : "▶";
+      $("#play").setAttribute("aria-label", state.playing ? "暂停" : "播放");
+    }
+
+    function selectNode(id) {
+      state.selectedId = id;
+      renderDetails();
+    }
+    function goTo(index) {
+      if (!state.steps.length) return;
+      state.index = Math.max(0, Math.min(state.steps.length - 1, index));
+      const step = currentStep();
+      state.selectedId = step?.current ?? null;
+      render();
+    }
+    function stopPlayback() {
+      state.playing = false;
+      if (state.timer !== null) clearInterval(state.timer);
+      state.timer = null;
+      render();
+    }
+    function togglePlayback() {
+      if (state.playing) { stopPlayback(); return; }
+      if (state.index >= state.steps.length - 1) goTo(0);
+      state.playing = true;
+      state.timer = setInterval(() => {
+        if (state.index >= state.steps.length - 1) { stopPlayback(); return; }
+        state.index++;
+        state.selectedId = currentStep()?.current ?? null;
+        render();
+      }, 1200);
+      render();
+    }
+
+    function loadTrace(text, fileName) {
+      stopPlayback();
+      const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/).filter(line => line.trim().length > 0);
+      const records = [];
+      const errors = [];
+      lines.forEach((line, index) => {
+        try { records.push({ value: JSON.parse(line), raw: line }); }
+        catch (error) { errors.push(`第 ${index + 1} 行 JSON 无法解析：${error.message}`); }
+      });
+      state.meta = records.find(record => record.value?.type === "meta")?.value || null;
+      const steps = records.filter(record => record.value?.type === "step");
+      state.steps = steps.map(record => record.value);
+      state.raw = steps.map(record => record.raw);
+      state.index = 0;
+      state.selectedId = state.steps[0]?.current ?? null;
+      $("#filename").textContent = fileName || "trace.ndjson";
+      const extra = [];
+      if (!state.meta) extra.push("文件中没有 meta 记录。" );
+      if (!state.steps.length) extra.push("文件中没有 step 记录。" );
+      if (errors.length) extra.push(...errors.slice(0, 4), errors.length > 4 ? `另有 ${errors.length - 4} 行无法解析。` : "");
+      if (state.meta?.format && state.meta.format !== "line-editor-trace") extra.push(`未知 trace 格式：${state.meta.format}`);
+      showAlerts(extra.filter(Boolean));
+      render();
+    }
+
+    $("#openFile").addEventListener("click", () => $("#fileInput").click());
+    $("#fileInput").addEventListener("change", async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      loadTrace(await file.text(), file.name);
+      event.target.value = "";
+    });
+    $("#previous").addEventListener("click", () => goTo(state.index - 1));
+    $("#next").addEventListener("click", () => goTo(state.index + 1));
+    $("#play").addEventListener("click", togglePlayback);
+    $("#theme").addEventListener("click", () => {
+      state.theme = state.theme === "light" ? "dark" : "light";
+      document.documentElement.dataset.theme = state.theme;
+      $("#theme").textContent = state.theme === "light" ? "深色" : "浅色";
+    });
+    $("#shortcuts").addEventListener("click", () => $("#shortcutDialog").showModal());
+    $("#showHistory").addEventListener("change", render);
+    $$(".tab").forEach(tab => tab.addEventListener("click", () => setView(tab.dataset.view)));
+    document.addEventListener("keydown", event => {
+      if (event.target.matches("input, textarea, select") || $("#shortcutDialog").open) return;
+      if (event.key === "ArrowLeft") { event.preventDefault(); goTo(state.index - 1); }
+      else if (event.key === "ArrowRight") { event.preventDefault(); goTo(state.index + 1); }
+      else if (event.key === "Home") { event.preventDefault(); goTo(0); }
+      else if (event.key === "End") { event.preventDefault(); goTo(state.steps.length - 1); }
+      else if (event.key === " ") { event.preventDefault(); togglePlayback(); }
+      else if (event.key === "1") setView("single");
+      else if (event.key === "2") setView("compare");
+      else if (event.key === "3") setView("table");
+      else if (event.key === "4") setView("raw");
+      else if (event.key.toLowerCase() === "h") $("#shortcutDialog").showModal();
+    });
+    const drop = $("#dropZone");
+    ["dragenter", "dragover"].forEach(type => drop.addEventListener(type, event => { event.preventDefault(); drop.style.outline = "2px dashed hsl(var(--ring))"; }));
+    ["dragleave", "drop"].forEach(type => drop.addEventListener(type, event => { event.preventDefault(); drop.style.outline = ""; }));
+    drop.addEventListener("drop", async event => {
+      const file = Array.from(event.dataTransfer.files || []).find(item => /\.(ndjson|jsonl|txt)$/i.test(item.name)) || event.dataTransfer.files?.[0];
+      if (file) loadTrace(await file.text(), file.name);
+    });
+    render();
+  </script>
+</body>
+</html>
